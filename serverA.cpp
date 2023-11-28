@@ -18,50 +18,71 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <deque>
 #include <vector>
 #include <set>
-
 #define MYPORT "30659"  // the port users will be connecting to
 #define MAINPORT "33659"
-
 #define MAXDATASIZE 1024 // max request size, unlikely to be larger than this
+using namespace std;
 
-// Reads the data from data#.txt where # is A, B or C
-void readData(std::unordered_map<std::string, std::set<std::string>> &dept_to_ids, std::string filename){
-    std::ifstream infile;
+// process the csv line by line by splitting into a queue
+deque<string> split(string line, string delim){
+    deque<string> split_queue;
+    size_t pos;
+    while ((pos = line.find(delim)) != string::npos) {
+        string val  = line.substr(0, pos);
+        line = line.substr(pos + delim.length());
+        cout << "word is : " << val << endl;
+        split_queue.push_back(val);
+    }
+    cout << "word is : " << line << endl;
+    split_queue.push_back(line);
+    return split_queue;
+}
+
+
+// Reads the data from data#.csv where # is A, B or C
+void readData(unordered_map<string, double> &find_gpas, unordered_map<string, vector<string>> &dept_to_ids, string filename){
+    ifstream infile;
     infile.open(filename);
-    std::string department_name;
-    std::string student_ids;
-    size_t beginning;
-    while(infile >> department_name){
-        infile >> student_ids;
-        beginning = 0;
-        std::set<std::string> ids_set;
-        for(size_t i = 0; i < student_ids.length(); i++){
-            char cur = student_ids[i];
-            // this will parse the id out of the semicolon separated string
-            if(cur == ';'){
-                std::string cur_id = student_ids.substr(beginning, i-beginning);
-                if(ids_set.find(cur_id) == ids_set.end() || ids_set.empty()) // making sure they are unique
-                    ids_set.insert(cur_id);
-                beginning = i + 1;
-                
+    string line;
+    infile >> line; // doing this to discard the first line
+    while(infile >> line){
+        // split the string into a queue of strings
+        deque<string> split_queue = split(line, ",");
+        // extract dept and studentID
+        string dept = split_queue.front();
+        split_queue.pop_front();
+        string id = split_queue.front();
+        split_queue.pop_front();
+        // get the gpa of this student
+        int count = 0;
+        long total = 0;
+        double gpa;    
+        for(string grade : split_queue){
+            if(grade != ""){
+                count++;
+                total += stol(grade);
             }
         }
-        // added this because there is no closing semicolon in the data
-        std::string last_id = student_ids.substr(beginning, student_ids.length()-beginning);
-        if(ids_set.find(last_id) == ids_set.end() || ids_set.empty()) // making sure they are unique
-            ids_set.insert(last_id);
-        
-        dept_to_ids[department_name] = ids_set;
+        gpa = ((double) total)/count;
+        find_gpas[id] = gpa;
+        if(dept_to_ids.find(dept) == dept_to_ids.end()){
+            vector<string> new_list;
+            new_list.push_back(id);
+            dept_to_ids[dept] = new_list;
+        }
+        else{
+            dept_to_ids[dept].push_back(id);
+        }
     }
-
 }
 
 int main(void)
 {
     int mysockfd, serversockfd;
-    std::string myServer = "A"; // defines the server data file to read from and label it prints
+    string myServer = "A"; // defines the server data file to read from and label it prints
     struct addrinfo hints, *servinfo, *p;
     int rv;
     int numbytes;
@@ -76,10 +97,14 @@ int main(void)
     hints.ai_flags = AI_PASSIVE; // use my IP
 
     
+    // KEEPING STATS FOR
+    
+    // map of student id's to GPA's
+    unordered_map<string, double> find_gpa;
+    // map of departments to list of student id's
+    unordered_map<string, vector<string>> dept_to_ids;
 
-    std::unordered_map<std::string, std::set<std::string>> dept_to_ids; // map from dept to id
-
-    readData(dept_to_ids, "data" + myServer + ".txt"); 
+    readData(find_gpa, dept_to_ids, "data" + myServer + ".csv"); 
 
     //Note: From Beejs guide
     // store linked list of potential hosting ports in servinfo 
@@ -145,7 +170,7 @@ int main(void)
 
 
     // SETUP IS DONE
-    std::cout << "Server " << myServer << " is up and running using UDP on port " << MYPORT << std::endl;
+    cout << "Server " << myServer << " is up and running using UDP on port " << MYPORT << endl;
   
     while(1) {  // respond to requests
         socklen_t addr_len = sizeof their_addr;
@@ -155,11 +180,10 @@ int main(void)
             continue;
         }
         buf[numbytes] = '\0';
-        std::string request(buf);
+        string request(buf);
 
         
-        
-        std::string response = "";
+        string response = "";
         // special initial request
         if(request == "*list"){
             // send all the departments for which we are available:
@@ -167,26 +191,27 @@ int main(void)
                 response += it.first + ";";
             }
             
-            std::cout << "Server " + myServer + " has sent a department list to Main Server" << std::endl;
+            cout << "Server " + myServer + " has sent a department list to Main Server" << endl;
         }
 
         // get the actual data for the associated request
         else{
-            std::cout << "Server " + myServer + " has received a request for " << request << std::endl;
+            deque<string> request_vec = split(request, ";");
+            cout << "Server " + myServer + " has received a request for " << request << endl;
             int found = 0;
             if(dept_to_ids.find(request) != dept_to_ids.end())
                 found = 1;
             
             if(found){
-                std::cout << "Server " + myServer + " found " << dept_to_ids[request].size() << " distinct students for " << request << ": ";
+                cout << "Server " + myServer + " found " << dept_to_ids[request].size() << " distinct students for " << request << ": ";
                 int first = 1;
                 for(auto &elem : dept_to_ids[request]){
-                    std::string out = first ? elem : ", " + elem;
-                    std::cout << out;
+                    string out = first ? elem : ", " + elem;
+                    cout << out;
                     response += elem + ";";
                     first = 0;
                 }
-                std::cout << std::endl;
+                cout << endl;
             }
             else{
                 response = "Not Found.";
@@ -199,7 +224,7 @@ int main(void)
             exit(1);
         }
         if(request != "*list")
-            std::cout << "Server " << myServer << " has sent the results to Main Server" << std::endl;
+            cout << "Server " << myServer << " has sent the results to Main Server" << endl;
 
     }
 
