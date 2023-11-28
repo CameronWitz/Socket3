@@ -1,0 +1,30 @@
+Cameron Witz
+8861350659
+Ubuntu 22.04
+What I did: I did the whole assignment myself.
+
+● What your code files are and what each one of them does. (Please do not repeat the
+project description, just name your code files, and briefly mention what they do).
+
+Code file descriptions:
+
+Makefile - This file compiles the executables for server# and servermain where # is in {A, B, C}.
+
+server#.cpp - The # again is in {A, B, C}, and these files are all the same apart from 2 things, which
+are the values given to MYPORT (line 24), and myServer (line 63). This file is responsible for reading the
+backend data files, and also for sending the student ids and departments to the main server.
+
+servermain.cpp - The main server which initially boots up, sets up sockets to communicate to each backend server, and
+requests a list of departments from each server one by one. After this point, it will ask the user to input a
+department name into a query field which it will attempt to fetch from the backend server responsible.
+
+Message format:
+
+All my messages are sent as lists of characters separated by semicolons. There is one exception to this which is
+a special command I created called '\*list' which is sent from servermain to server# which then should fetch all the
+department information.
+
+Reused Code:
+
+A lot of my code was initially based on Beej's guide, but I made many modifications myself.
+Every place where I used Beej's guide code is commented // Note: from Beej's guide.
