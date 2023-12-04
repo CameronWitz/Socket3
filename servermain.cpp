@@ -243,18 +243,18 @@ int main(int argc, char *argv[])
     int rv2;
     // Specify the type of connection we want to host
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC; //IPV4 and IPV6 both fine
-    hints.ai_socktype = SOCK_STREAM; // TCP
-    hints.ai_flags = AI_PASSIVE; // use my IP
+    hint2.ai_family = AF_UNSPEC; //IPV4 and IPV6 both fine
+    hints2.ai_socktype = SOCK_STREAM; // TCP
+    hints2.ai_flags = AI_PASSIVE; // use my IP
     // store linked list of potential hosting ports in servinfo
     if ((rv2 = getaddrinfo("localhost", TCP_MAINPORT, &hints2, &servinfo2)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }
     // loop through all the results and bind to the first we can
-    for(p2 = servinfo; p2 != NULL; p2 = p->ai_next) {
-        if ((sockfd = socket(p2->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1) {
+    for(p2 = servinfo2; p2 != NULL; p2 = p->ai_next) {
+        if ((sockfd = socket(p2->ai_family, p2->ai_socktype,
+                p2->ai_protocol)) == -1) {
             perror("server: socket");
             continue;
         }
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
             exit(1);
         }
 
-        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+        if (bind(sockfd, p2->ai_addr, p2->ai_addrlen) == -1) {
             close(sockfd);
             perror("server: bind");
             continue;
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
         break;
     }
     freeaddrinfo(servinfo2); // all done with this structure
-    if (p == NULL)  {
+    if (p2 == NULL)  {
         fprintf(stderr, "server: failed to bind\n");
         exit(1);
     }
