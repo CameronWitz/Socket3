@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
         
         query = dept_query + ";" + studentID;
         
-        if (send(sockfd, query.c_str(), dept_query.length(), 0) == -1){
+        if (send(sockfd, query.c_str(), query.length(), 0) == -1){
             perror("send");
             exit(1);
         }
