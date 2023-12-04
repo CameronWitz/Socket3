@@ -23,8 +23,8 @@
 #include <vector>
 #include <sstream>
 #include <set>
-#define MYPORT "30659"  // the port users will be connecting to
-#define MAINPORT "33659" //TODO: Change this
+#define MYPORT "41659"  // the port users will be connecting to
+#define MAINPORT "44659" //TODO: Change this
 #define MAXDATASIZE 1024 // max request size, unlikely to be larger than this
 
 // HELPER FUNCTIONS
