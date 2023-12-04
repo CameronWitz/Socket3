@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>    // std::find
 #include <fstream>
 #include <deque>
 #include <vector>
