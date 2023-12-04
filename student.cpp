@@ -26,6 +26,7 @@
 
 // process the csv line by line by splitting into a queue
 std::deque<std::string> split(std::string line, std::string delim){
+    std::cout << "DEBUG: line is " << line << std::endl;
     std::deque<std::string> split_queue;
     size_t pos;
     while ((pos = line.find(delim)) != std::string::npos) {
@@ -121,9 +122,8 @@ int main(int argc, char *argv[])
         std::string dept_query, studentID, query;
         std::cout << "Department Name: ";
         std::cin >> dept_query; // read in the query
-        std::cout << std::endl << "Student ID: ";
+        std::cout << "Student ID: ";
         std::cin >> studentID ;
-        std::cout << std::endl;
         
         query = dept_query + ";" + studentID;
         
