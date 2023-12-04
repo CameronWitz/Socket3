@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
     int rv2;
     // Specify the type of connection we want to host
     memset(&hints, 0, sizeof hints);
-    hint2.ai_family = AF_UNSPEC; //IPV4 and IPV6 both fine
+    hints2.ai_family = AF_UNSPEC; //IPV4 and IPV6 both fine
     hints2.ai_socktype = SOCK_STREAM; // TCP
     hints2.ai_flags = AI_PASSIVE; // use my IP
     // store linked list of potential hosting ports in servinfo
