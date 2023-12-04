@@ -286,7 +286,7 @@ int main(void)
                 std::cout << "Server " << myServer << " has received a student academic record query for Student " << studentID << " in " << dept << std::endl;
 
                 // check if student is in this department
-                std::vector students = dept_to_ids[dept];
+                std::vector<std::string> students = dept_to_ids[dept];
                 if(std::find(students.begin(), students.end(), studentID) == students.end()){
                     // Element was not present
                     found = 0;
