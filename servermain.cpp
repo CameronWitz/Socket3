@@ -43,6 +43,7 @@
 
 // process the csv line by line by splitting into a queue
 std::deque<std::string> split(std::string line, std::string delim){
+     std::cout << "DEBUG: line is " << line << std::endl;
     std::deque<std::string> split_queue;
     size_t pos;
     while ((pos = line.find(delim)) != std::string::npos) {
