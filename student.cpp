@@ -15,12 +15,41 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <deque>
+#include <vector>
 
 #include <arpa/inet.h>
 
-#define PORT "23659"  // the port we will be connecting to
+#define PORT "45659"  // the port we will be connecting to
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
+
+// process the csv line by line by splitting into a queue
+std::deque<std::string> split(std::string line, std::string delim){
+    std::deque<std::string> split_queue;
+    size_t pos;
+    while ((pos = line.find(delim)) != std::string::npos) {
+        std::string val  = line.substr(0, pos);
+        line = line.substr(pos + delim.length());
+        std::cout << "word is : " << val << std::endl;
+        split_queue.push_back(val);
+    }
+    std::cout << "word is : " << line << std::endl;
+    split_queue.push_back(line);
+    return split_queue;
+}
+
+// creates a delimited string 
+std::string join(std::vector<std::string> elements, std::string delim){
+    std::string ret = "";
+    std::string last = elements.back();
+    elements.pop_back();
+    for(auto elem : elements){
+        ret += elem + delim;
+    }
+    ret += last;
+    return ret;
+}
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -34,7 +63,7 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(int argc, char *argv[])
 {
-    int sockfd, numbytes;  
+    int sockfd, numbytes, myPort;  
     char buf[MAXDATASIZE];
     struct addrinfo hints, *servinfo, *p;
     int rv;
@@ -64,6 +93,17 @@ int main(int argc, char *argv[])
             continue;
         }
 
+        // Get the dynamic port
+        struct sockaddr_storage local_addr;
+        socklen_t addr_len = sizeof local_addr;
+        getsockname(sockfd, (struct sockaddr*)&local_addr, &addr_len);
+
+        if (local_addr.ss_family == AF_INET) {
+            myPort = ntohs(((struct sockaddr_in*)&local_addr)->sin_port);
+        } else {
+            myPort = ntohs(((struct sockaddr_in6*)&local_addr)->sin6_port);
+        }
+
         break;
     }
 
@@ -78,17 +118,21 @@ int main(int argc, char *argv[])
 
     // never supposed to exit from here 
     while(1){
-        std::string dept_query;
-        std::cout << "Enter Department Name: ";
+        std::string dept_query, studentID, query;
+        std::cout << "Department Name: ";
         std::cin >> dept_query; // read in the query
-
+        std::cout << std::endl << "Student ID: ";
+        std::cin >> studentID ;
+        std::cout << std::endl;
         
-        if (send(sockfd, dept_query.c_str(), dept_query.length(), 0) == -1){
+        query = dept_query + ";" + studentID;
+        
+        if (send(sockfd, query.c_str(), dept_query.length(), 0) == -1){
             perror("send");
             exit(1);
         }
 
-        std::cout << "Client has sent Department " << dept_query << " to Main Server using TCP." << std::endl;
+        std::cout << "Client has sent Department " << dept_query << " and " << studentID <<  " to Main Server using TCP over port" << myPort << std::endl;
                 
         if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
             perror("recv");
@@ -109,10 +153,12 @@ int main(int argc, char *argv[])
             std::cout << "Department " << dept_query << " not found." << std::endl;
         }
         else{
-            std::cout << "Department " << dept_query << " is associated with server " << response << std::endl;
+            std::deque<std::string> stats = split(response, ";");
+            std::cout << "The academic record for Student " << studentID << " in " << dept << "is: " << std::endl;
+            std::cout << "Student GPA: " << stats.front() << std::endl << "Percentage Rank: " << stats.back() << std::endl;
         }
 
-        std::cout << "-----Start a new query-----" << std::endl;
+        std::cout << "-----Start a new reqyest-----" << std::endl;
     }
 
     return 0;

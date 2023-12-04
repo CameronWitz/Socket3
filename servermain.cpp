@@ -15,21 +15,68 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <deque>
 #include <unordered_map>
+#include <signal.h>
+
 
 #include <arpa/inet.h>
 // used to keep track of which ports in my array belong to which server
+#define BACKLOG 10  // how many pending connections queue will hold
+
 #define indexA 0
 #define indexB 1
 #define indexC 2
-#define indexMain 3
+#define indexMainUDP 3
+#define indexMainTCP 4
 
-#define PORTA "30659"
-#define PORTB "31659"
-#define PORTC "32659"
-#define MAINPORT "33659"
+#define PORTA "41659"
+#define PORTB "42659"
+#define PORTC "43659"
+#define UDP_MAINPORT "44659"
+#define TCP_MAINPORT "45659"
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
+
+// HELPER FUNCTIONS
+
+// process the csv line by line by splitting into a queue
+std::deque<std::string> split(std::string line, std::string delim){
+    std::deque<std::string> split_queue;
+    size_t pos;
+    while ((pos = line.find(delim)) != std::string::npos) {
+        std::string val  = line.substr(0, pos);
+        line = line.substr(pos + delim.length());
+        std::cout << "word is : " << val << std::endl;
+        split_queue.push_back(val);
+    }
+    std::cout << "word is : " << line << std::endl;
+    split_queue.push_back(line);
+    return split_queue;
+}
+
+// creates a delimited string 
+std::string join(std::vector<std::string> elements, std::string delim){
+    std::string ret = "";
+    std::string last = elements.back();
+    elements.pop_back();
+    for(auto elem : elements){
+        ret += elem + delim;
+    }
+    ret += last;
+    return ret;
+}
+
+// invoked due to sigaction
+void sigchld_handler(int s)
+{
+    // waitpid() might overwrite errno, so we save and restore it:
+    int saved_errno = errno;
+
+    while(waitpid(-1, NULL, WNOHANG) > 0);
+
+    errno = saved_errno;
+}
 
 
 /*
@@ -47,7 +94,7 @@ void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std
     char buf[MAXDATASIZE];
     struct sockaddr_storage their_addr;
     socklen_t addr_len = sizeof their_addr;
-    numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
+    numbytes = recvfrom(sockfds[indexMainUDP], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
     if(numbytes < 0){
         perror("list request recv");
         return;
@@ -55,7 +102,7 @@ void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std
     //Output
     std::string server_str = backendServerInd == indexA ? "A" : backendServerInd == indexB ? "B" : "C";
     std::cout << "Main server has received the department list from Backend Server " << server_str;
-    std::cout << " using UDP over port " << MAINPORT << std::endl;
+    std::cout << " using UDP over port " << UDP_MAINPORT << std::endl;
 
     buf[numbytes] = '\0';
     std::string response(buf);
@@ -71,19 +118,64 @@ void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std
     }
 }
 
+std::string handleQueryA(int backendServer, int backendServerInd, sockaddr *ps[], socklen_t ps_len[], int *sockfds, std::string dept, std::string studentID){
+    std::string query = dept + ";" + studentID;
+    int numbytes = sendto(backendServer, query.c_str(), query.size(), 0, ps[backendServerInd], ps_len[backendServerInd]);
+    if(numbytes < 0){
+        perror("Query A send");
+    }
+    std::string server_str = backendServerInd == indexA ? "A" : backendServerInd == indexB ? "B" : "C";
+    std::cout << "Main Server has sent request to server " << server_str << " using UDP over port " << UDP_MAINPORT << std::endl;
+    
+    char buf[MAXDATASIZE];
+    struct sockaddr_storage their_addr;
+    socklen_t addr_len = sizeof their_addr;
+    numbytes = recvfrom(sockfds[indexMainUDP], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
+    if(numbytes < 0){
+        perror("Receive Query A");
+        return "";
+    }
+    buf[numbytes] = '\0';
+    std::string response(buf);
+    std::cout << "Main Server has received searching result of Student " << studentID << " from server " << server_str << std::endl;
+    return response;
+}
+
+std::string handleQueryB(int backendServer, int backendServerInd, sockaddr *ps[], socklen_t ps_len[], int *sockfds, std::string dept){
+    std::string query = dept;
+    int numbytes = sendto(backendServer, query.c_str(), query.size(), 0, ps[backendServerInd], ps_len[backendServerInd]);
+    if(numbytes < 0){
+        perror("Query B send");
+    }
+    std::string server_str = backendServerInd == indexA ? "A" : backendServerInd == indexB ? "B" : "C";
+    std::cout << "Main Server has sent request to server " << server_str << " using UDP over port " << UDP_MAINPORT << std::endl;
+    
+    char buf[MAXDATASIZE];
+    struct sockaddr_storage their_addr;
+    socklen_t addr_len = sizeof their_addr;
+    numbytes = recvfrom(sockfds[indexMainUDP], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
+    if(numbytes < 0){
+        perror("Receive Query B");
+        return "";
+    }
+    buf[numbytes] = '\0';
+    std::string response(buf);
+    return response;
+}
 
 int main(int argc, char *argv[])
 {
     int numbytes;
-    int sockfds[4] = {0};
-    const char* ports[4] = {PORTA, PORTB, PORTC, MAINPORT};
+    int sockfds[5] = {0};
+    const char* ports[5] = {PORTA, PORTB, PORTC, UDP_MAINPORT, TCP_MAINPORT};
 
     char buf[MAXDATASIZE];
     sockaddr* ps_addr[4] = {0, 0, 0, 0};
     socklen_t ps_addrlen[4] =  {0, 0, 0, 0};
     struct addrinfo hints, *servinfo, *p;
     int rv;
-   
+    
+    // UDP SECTION
     // Set up sockets, only binding for our port
     for(int i = 0; i < 4; i ++){
         
@@ -107,7 +199,7 @@ int main(int argc, char *argv[])
                 continue;
             }
             
-            if(i == indexMain){
+            if(i == indexMainUDP){
                 if (bind(mysockfd, p->ai_addr, p->ai_addrlen) == -1) {
                     close(mysockfd);
                     perror("server: bind");
@@ -137,72 +229,171 @@ int main(int argc, char *argv[])
     askForDepts(sockfds[indexA], indexA, dept_to_server, ps_addr, ps_addrlen, sockfds); // request depts from serverA
     askForDepts(sockfds[indexB], indexB, dept_to_server, ps_addr, ps_addrlen, sockfds); // request depts from serverB
     askForDepts(sockfds[indexC], indexC, dept_to_server, ps_addr, ps_addrlen, sockfds); // request depts from serverC
+    //////////////////////////////////////////////////////////////////////////////////////
+    //
+    // TCP SECTION
+    int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
+    struct addrinfo hints2, *servinfo2, *p2;
+    struct sockaddr_storage their_addr;//, my_addr; // connector's address information
+    socklen_t sin_size;
+    struct sigaction sa;
+    int clients = 0;
+    int yes=1;
+    int rv2;
+    // Specify the type of connection we want to host
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC; //IPV4 and IPV6 both fine
+    hints.ai_socktype = SOCK_STREAM; // TCP
+    hints.ai_flags = AI_PASSIVE; // use my IP
+    // store linked list of potential hosting ports in servinfo
+    if ((rv2 = getaddrinfo("localhost", TCP_MAINPORT, &hints2, &servinfo2)) != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return 1;
+    }
+    // loop through all the results and bind to the first we can
+    for(p2 = servinfo; p2 != NULL; p2 = p->ai_next) {
+        if ((sockfd = socket(p2->ai_family, p->ai_socktype,
+                p->ai_protocol)) == -1) {
+            perror("server: socket");
+            continue;
+        }
+
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+                sizeof(int)) == -1) {
+            perror("setsockopt");
+            exit(1);
+        }
+
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            perror("server: bind");
+            continue;
+        }
+
+        break;
+    }
+    freeaddrinfo(servinfo2); // all done with this structure
+    if (p == NULL)  {
+        fprintf(stderr, "server: failed to bind\n");
+        exit(1);
+    }
+
+    if (listen(sockfd, BACKLOG) == -1) {
+        perror("listen");
+        exit(1);
+    }
+
+    sa.sa_handler = sigchld_handler; // reap all dead processes
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(1);
+    }
 
     while(1){
-        std::string dept_query;
-        std::cout << "Enter Department Name: ";
-        std::cin >> dept_query; // read in the query
-
-        // find the server that this dept is associated with
-        if(dept_to_server.find(dept_query) == dept_to_server.end()){
-            std::cout << "Department does not show up in Backend servers." << std::endl;
+        sin_size = sizeof their_addr;
+        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+        if (new_fd == -1) {
+            perror("accept");
+            continue;
         }
-        else{
-            int server = dept_to_server[dept_query];
-            std::string server_str = server == indexA ? "A" : server == indexB ? "B" : "C"; // get server name based on index
-            std::cout << "Department " << dept_query << " shows up in server " << server_str << std::endl;
+        clients ++;
+        if (!fork()) { // this is the child process
+            int cur_client = clients;
+            close(sockfd); // child doesn't need the listener
 
-            struct sockaddr_storage their_addr;
-            socklen_t addr_len = sizeof their_addr;
-            // request the query
-            numbytes = sendto(sockfds[server], dept_query.c_str(), dept_query.length(), 0, ps_addr[server], ps_addrlen[server]);
-            if(numbytes < 0){
-                perror("request send");
-                return -1;
-            }
+            while(1){
+                // Respond to any queries from the client
+                int numbytes;
+                char buf[MAXDATASIZE];
 
-            std::cout << "The Main Server has sent request for " << dept_query << " to server ";
-            std::cout << server_str << " using UDP over port " << MAINPORT << std::endl;
-
-            // retrieve the student ids 
-            numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
-            if(numbytes < 0){
-                perror("request recv");
-                return -1;
-            }
-            buf[numbytes] = '\0';
-            std::string response(buf);
-            size_t beginning = 0;
-            
-            std::cout << "The Main server has received searching result(s) of " << dept_query;
-            std::cout << " from Backend server " << server_str << std::endl;
-            // std::cout << "DEBUG: " << response << std::endl;
-
-            std::vector<std::string> ids;
-            // parse out the ids
-            for(size_t i = 0; i < response.length(); i++){
-                if(response[i] == ';'){
-                    std::string id = response.substr(beginning, i - beginning);
-                    beginning = i + 1;
-                    ids.push_back(id);
+                if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) == -1) {
+                    perror("recv");
+                    exit(1);
                 }
+
+                if(numbytes == 0){
+                    // std::cout << "Client closed connection, this process will exit" << std::endl;
+                    close(new_fd);
+                    exit(0);
+                }
+
+                buf[numbytes] = '\0';
+                std::string request(buf);
+
+                std::deque<std::string> request_split = split(request, ";");
+                std::string type = request_split.front();
+                request_split.pop_front();
+                std::string queryType = "A";
+                if(type == "admin"){
+                    // admin request
+                    if(request_split.size() == 1){
+                        queryType = "B";
+                    }
+                }
+                // student request
+                std::string dept, studentID, reply;
+                dept = request_split.front();
+                if(queryType == "A"){
+                    studentID = request_split.back();
+                    std::cout << "Main server has received the request on Student " << studentID << 
+                    " in " << dept << " from " << type << " client " ;
+                    if(type == "student"){
+                        std::cout << cur_client;
+                    }
+                    std::cout << " using TCP over port " << TCP_MAINPORT << std::endl;
+                }
+                
+                // Check if the department exists
+                if(dept_to_server.find(request) == dept_to_server.end()){
+                    reply = "Not Found"; 
+                    std::cout << "Department " << request << " does not show up in backend server A, B, C ";
+                    std::cout << std::endl;
+                }
+                else{
+                    // Handle the request
+                    std::string server_str = dept_to_server[request] == indexA ? "A" : dept_to_server[request] == indexB ? "B" : "C"; // get server name based on index
+                    std::cout << request << " shows up in server " << server_str << std::endl;
+                    reply = queryType == "A" ? 
+                    handleQueryA(sockfds[dept_to_server[dept]], dept_to_server[dept], ps_addr, ps_addrlen, sockfds, dept, studentID) :
+                    handleQueryB(sockfds[dept_to_server[dept]], dept_to_server[dept], ps_addr, ps_addrlen, sockfds, dept);
+                }
+
+                if (send(new_fd, reply.c_str(), reply.length(), 0) == -1){
+                    perror("send");
+                }
+                if(reply == "Not Found"){
+                    std::string server_str = dept_to_server[request] == indexA ? "A" : dept_to_server[request] == indexB ? "B" : "C"; // get server name based on index
+                    std::cout << "Main Server has received “Student " << studentID << ": Not Found” from server " ;
+                    std::cout << server_str << std::endl;
+                    std::cout << "Main server has sent message to " << type << " client ";
+                     if(type == "student"){
+                        std::cout << cur_client;
+                    }
+                    std::cout << " using TCP over port " << TCP_MAINPORT << std::endl;
+                }
+                // Successful query so print output
+                else{
+                    if(queryType == "A"){
+                        std::cout << "Main Server has sent result(s) to " << type << " client ";
+                        if(type == "student"){
+                            std::cout << cur_client;
+                        }
+                        std::cout << " using TCP over port " << TCP_MAINPORT << std::endl;
+                    }
+                    else{
+                        std::cout << "Main Server has sent department statistics to Admin client using TCP over port " <<
+                        TCP_MAINPORT << std::endl;
+                    }
+                }
+
             }
-            std::cout << "There are " << ids.size() << " distinct students in " << dept_query <<"."<<std::endl;
-            std::cout << "Their IDs are ";
-        
-            int firsttime = 1;
-            // print the ids 
-            for(auto elem : ids){
-                std::string out = firsttime ? elem : ", " + elem;
-                std::cout << out;
-                firsttime = 0;
-            }
-            std::cout << std::endl << "-----Start a new query-----" << std::endl;
         }
 
+        close(new_fd);  // parent doesn't need this
     }
-        
-
+    
     return 0;
    
 }
