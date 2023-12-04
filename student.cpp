@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
         }
         else{
             std::deque<std::string> stats = split(response, ";");
-            std::cout << "The academic record for Student " << studentID << " in " << dept << "is: " << std::endl;
+            std::cout << "The academic record for Student " << studentID << " in " << dept_query << "is: " << std::endl;
             std::cout << "Student GPA: " << stats.front() << std::endl << "Percentage Rank: " << stats.back() << std::endl;
         }
 
