@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
     int yes=1;
     int rv2;
     // Specify the type of connection we want to host
-    memset(&hints, 0, sizeof hints);
+    memset(&hints2, 0, sizeof hints2);
     hints2.ai_family = AF_UNSPEC; //IPV4 and IPV6 both fine
     hints2.ai_socktype = SOCK_STREAM; // TCP
     hints2.ai_flags = AI_PASSIVE; // use my IP
