@@ -348,10 +348,12 @@ int main(int argc, char *argv[])
                 }
                 
                 // Check if the department exists
+                int exists = 1;
                 if(dept_to_server.find(dept) == dept_to_server.end()){
                     reply = "Not Found"; 
                     std::cout << "Department " << dept << " does not show up in backend server A, B, C ";
                     std::cout << std::endl;
+                    exists = 0;
                 }
                 else{
                     // Handle the request
@@ -365,7 +367,7 @@ int main(int argc, char *argv[])
                 if (send(new_fd, reply.c_str(), reply.length(), 0) == -1){
                     perror("send");
                 }
-                if(reply == "Not Found"){
+                if(reply == "Not Found" && exists){
                     std::string server_str = dept_to_server[request] == indexA ? "A" : dept_to_server[request] == indexB ? "B" : "C"; // get server name based on index
                     std::cout << "Main Server has received “Student " << studentID << ": Not Found” from server " ;
                     std::cout << server_str << std::endl;
