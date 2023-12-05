@@ -353,7 +353,14 @@ int main(int argc, char *argv[])
                 if(dept_to_server.find(dept) == dept_to_server.end()){
                     reply = "Not Found Department"; 
                     std::cout << "Department " << dept << " does not show up in backend server A, B, C ";
-                    std::cout << std::endl;
+                    std::cout << std::endl << "Main Server has sent \"" << dept << "\": Not found to client";
+                    if(type == "student"){
+                        std::cout << cur_client;
+                    }
+                    else{
+                        std::cout << "Admin";
+                    }
+                    std::cout << " using TCP over port " << TCP_MAINPORT << std::endl;
      
                 }
                 else{
@@ -373,13 +380,13 @@ int main(int argc, char *argv[])
                     std::cout << "Main Server has received “Student " << studentID << ": Not Found” from server " ;
                     std::cout << server_str << std::endl;
                     std::cout << "Main server has sent message to " << type << " client ";
-                     if(type == "student"){
+                    if(type == "student"){
                         std::cout << cur_client;
                     }
                     std::cout << " using TCP over port " << TCP_MAINPORT << std::endl;
                 }
                 // Successful query so print output
-                else{
+                else if(reply != "Not Found Department"){
                     if(queryType == "A"){
                         std::cout << "Main Server has sent result(s) to " << type << " client ";
                         if(type == "student"){
