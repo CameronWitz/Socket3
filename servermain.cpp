@@ -353,7 +353,7 @@ int main(int argc, char *argv[])
                 if(dept_to_server.find(dept) == dept_to_server.end()){
                     reply = "Not Found Department"; 
                     std::cout << "Department " << dept << " does not show up in backend server A, B, C ";
-                    std::cout << std::endl << "Main Server has sent \"" << dept << "≈: Not found\" to client ";
+                    std::cout << std::endl << "Main Server has sent \"" << dept << ": Not found\" to client ";
                     if(type == "student"){
                         std::cout << cur_client;
                     }
