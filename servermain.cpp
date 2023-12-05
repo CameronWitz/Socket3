@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
                 if (send(new_fd, reply.c_str(), reply.length(), 0) == -1){
                     perror("send");
                 }
-                if(reply == "Not Found" ){
+                if(reply == "Not Found." ){
                     std::string server_str = dept_to_server[request] == indexA ? "A" : dept_to_server[request] == indexB ? "B" : "C"; // get server name based on index
                     std::cout << "Main Server has received “Student " << studentID << ": Not Found” from server " ;
                     std::cout << server_str << std::endl;

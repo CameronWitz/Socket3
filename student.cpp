@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
         if(response == "Not Found Department"){
             std::cout << "Department " << dept_query << " not found." << std::endl;
         }
-        else if(response == "Not Found"){
+        else if(response == "Not Found."){
             std::cout << "Student " << studentID << " not found." << std::endl;
         }
         else{

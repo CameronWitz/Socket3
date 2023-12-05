@@ -311,14 +311,14 @@ int main(void)
                 std::cout << "Server " << myServer << " has received a department academic statistics query for "<< dept << std::endl;
                 std::vector<std::string> stats = adminDeptStats(find_gpas, dept_to_ids, dept);
                 response = join(stats, ";");
-                std::cout << "Server " << myServer << "calculated following academic statistics for " << dept << std::endl;
+                std::cout << "Server " << myServer << " calculated following academic statistics for " << dept << std::endl;
                 std::cout << "Department GPA Mean: " << stats[0] << std::endl;
                 std::cout << "Department GPA Variance: " << stats[1] << std::endl;
                 std::cout << "Department GPA Max: " << stats[2] << std::endl;
                 std::cout << "Department GPA Min: " << stats[3] << std::endl;
             }
             if(found)
-                std::cout << "Server " << myServer << "has sent the result to Main Server" << std::endl;
+                std::cout << "Server " << myServer << " has sent the result to Main Server" << std::endl;
         }
         // SEND RESPONSE
         numbytes = sendto(serversockfd, response.c_str(), response.length(), 0, p->ai_addr, p->ai_addrlen);
