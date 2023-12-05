@@ -145,6 +145,7 @@ std::string handleQueryA(int backendServer, int backendServerInd, sockaddr *ps[]
 
 std::string handleQueryB(int backendServer, int backendServerInd, sockaddr *ps[], socklen_t ps_len[], int *sockfds, std::string dept){
     std::string query = dept;
+    std::cout << "Main server has received the request on "<< dept <<" from Admin using TCP over port "<< UDP_MAINPORT << std::endl;
     int numbytes = sendto(backendServer, query.c_str(), query.size(), 0, ps[backendServerInd], ps_len[backendServerInd]);
     if(numbytes < 0){
         perror("Query B send");
