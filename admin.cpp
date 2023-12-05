@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
     while(1){
         std::string dept_query, studentID, query;
         std::cout << "Department Name: ";
-        std::cin >> dept_query; // read in the query
+        std::getline(std::cin, dept_query);
         std::cout << "Student ID (\"Enter\" to skip): ";
         std::getline(std::cin, studentID);
         //Pressing "enter" here should go into this if statement
