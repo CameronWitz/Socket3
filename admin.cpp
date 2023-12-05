@@ -123,13 +123,11 @@ int main(int argc, char *argv[])
         std::cout << "Department Name: ";
         std::cin >> dept_query; // read in the query
         std::cout << "Student ID (\"Enter\" to skip): ";
+        std::getline(std::cin, studentID);
         //Pressing "enter" here should go into this if statement
-        if(!(std::cin >> studentID)){
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
+        if(studentID == ""){
+            
             query = "admin;" + dept_query;
-            studentID = "";
         } 
        else{
             query = "admin;" + dept_query + ";" + studentID;
