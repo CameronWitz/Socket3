@@ -32,10 +32,10 @@ std::deque<std::string> split(std::string line, std::string delim){
     while ((pos = line.find(delim)) != std::string::npos) {
         std::string val  = line.substr(0, pos);
         line = line.substr(pos + delim.length());
-        std::cout << "word is : " << val << std::endl;
+        // std::cout << "word is : " << val << std::endl;
         split_queue.push_back(val);
     }
-    std::cout << "word is : " << line << std::endl;
+    // std::cout << "word is : " << line << std::endl;
     split_queue.push_back(line);
     return split_queue;
 }
