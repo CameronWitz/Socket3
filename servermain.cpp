@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
     // UDP SECTION
     // Set up sockets, only binding for our port
     for(int i = 0; i < 4; i ++){
-        
+        // Note: from Beej's guide.
         memset(&hints, 0, sizeof hints);
         hints.ai_family = AF_INET6; // ipv6
         hints.ai_socktype = SOCK_DGRAM;
@@ -243,6 +243,7 @@ int main(int argc, char *argv[])
     int clients = 0;
     int yes=1;
     int rv2;
+    // Note: from Beej's guide.
     // Specify the type of connection we want to host
     memset(&hints2, 0, sizeof hints2);
     hints2.ai_family = AF_UNSPEC; //IPV4 and IPV6 both fine
@@ -275,6 +276,7 @@ int main(int argc, char *argv[])
 
         break;
     }
+    // Note: from Beej's guide.
     freeaddrinfo(servinfo2); // all done with this structure
     if (p2 == NULL)  {
         fprintf(stderr, "server: failed to bind\n");
@@ -285,7 +287,7 @@ int main(int argc, char *argv[])
         perror("listen");
         exit(1);
     }
-
+    // Note: from Beej's guide.
     sa.sa_handler = sigchld_handler; // reap all dead processes
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
@@ -326,7 +328,7 @@ int main(int argc, char *argv[])
                 std::string request(buf);
 
                 std::deque<std::string> request_split = split(request, ";");
-                std::string type = request_split.front();
+                std::string type = request_split.front(); // type is either student or admin
                 request_split.pop_front();
                 std::string queryType = "A";
                 if(type == "admin"){

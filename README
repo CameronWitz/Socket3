@@ -3,20 +3,21 @@ Cameron Witz
 Ubuntu 22.04
 What I did: I did the whole assignment myself.
 
-● What your code files are and what each one of them does. (Please do not repeat the
-project description, just name your code files, and briefly mention what they do).
-
 Code file descriptions:
 
-Makefile - This file compiles the executables for server# and servermain where # is in {A, B, C}.
+Makefile - This file compiles the executables for server#, servermain, admin and student, where # is in {A, B, C}.
 
 server#.cpp - The # again is in {A, B, C}, and these files are all the same apart from 2 things, which
-are the values given to MYPORT (line 24), and myServer (line 63). This file is responsible for reading the
-backend data files, and also for sending the student ids and departments to the main server.
+are the values given to MYPORT, and myServer. This file is responsible for reading the
+backend data files, and also for sending the student ids and department statistics to servermain.
 
 servermain.cpp - The main server which initially boots up, sets up sockets to communicate to each backend server, and
-requests a list of departments from each server one by one. After this point, it will ask the user to input a
-department name into a query field which it will attempt to fetch from the backend server responsible.
+requests a list of departments from each server one by one. After this point, it will wait for incoming TCP connections from either admin or student, and
+respond to the queries of either type a.) or b.) as listed in the project description.
+
+student.cpp - The file which is used to establish a TCP connection to servermain for student type users, and only allows for queries of type a.)
+
+admin.cpp - The file which is used to establish a TCP connection to servermain for admin type users, and supports both types of queries.
 
 Message format:
 
