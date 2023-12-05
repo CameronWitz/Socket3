@@ -166,7 +166,7 @@ std::string studentRankStats(std::unordered_map<std::string, double> find_gpas, 
 int main(void)
 {
     int mysockfd, serversockfd;
-    std::string myServer = "B"; // defines the server data file to read from and label it prints //TODO: Change
+    std::string myServer = "C"; // defines the server data file to read from and label it prints //TODO: Change
     struct addrinfo hints, *servinfo, *p;
     int rv;
     int numbytes;

@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
             exit(1);
         }
 
-        std::cout << "Admin has sent Department " << dept_query << " and " << studentID <<  " to Main Server using TCP over port" << myPort << std::endl;
+        std::cout << "Admin has sent Department " << dept_query << " and " << studentID <<  " to Main Server using TCP over port " << myPort << std::endl;
                 
         if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
             perror("recv");
