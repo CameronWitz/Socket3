@@ -32,10 +32,10 @@ std::deque<std::string> split(std::string line, std::string delim){
     while ((pos = line.find(delim)) != std::string::npos) {
         std::string val  = line.substr(0, pos);
         line = line.substr(pos + delim.length());
-        std::cout << "word is : " << val << std::endl;
+        // std::cout << "word is : " << val << std::endl;
         split_queue.push_back(val);
     }
-    std::cout << "word is : " << line << std::endl;
+    // std::cout << "word is : " << line << std::endl;
     split_queue.push_back(line);
     return split_queue;
 }
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
         if(response == "Not Found Department"){
             std::cout << "Department " << dept_query << " not found." << std::endl;
         }
-        if(response == "Not Found"){
+        else if(response == "Not Found"){
             std::cout << "Student " << studentID << " not found." << std::endl;
         }
         else{
