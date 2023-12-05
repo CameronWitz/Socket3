@@ -348,15 +348,15 @@ int main(int argc, char *argv[])
                 }
                 
                 // Check if the department exists
-                if(dept_to_server.find(request) == dept_to_server.end()){
+                if(dept_to_server.find(dept) == dept_to_server.end()){
                     reply = "Not Found"; 
-                    std::cout << "Department " << request << " does not show up in backend server A, B, C ";
+                    std::cout << "Department " << dept << " does not show up in backend server A, B, C ";
                     std::cout << std::endl;
                 }
                 else{
                     // Handle the request
                     std::string server_str = dept_to_server[request] == indexA ? "A" : dept_to_server[request] == indexB ? "B" : "C"; // get server name based on index
-                    std::cout << request << " shows up in server " << server_str << std::endl;
+                    std::cout << dept << " shows up in server " << server_str << std::endl;
                     reply = queryType == "A" ? 
                     handleQueryA(sockfds[dept_to_server[dept]], dept_to_server[dept], ps_addr, ps_addrlen, sockfds, dept, studentID) :
                     handleQueryB(sockfds[dept_to_server[dept]], dept_to_server[dept], ps_addr, ps_addrlen, sockfds, dept);
