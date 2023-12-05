@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
                 std::cout << "Student GPA: " << stats.front() << std::endl << "Percentage Rank: " << stats.back() << std::endl;
             }
             else{
-                std::cout << "The academic statistics for " << dept_query << "are: " << std::endl;
+                std::cout << "The academic statistics for " << dept_query << " are: " << std::endl;
                 std::cout << "Department GPA Mean: " << stats.front() << std::endl;
                 stats.pop_front();
                 std::cout << "Department GPA Variance: " << stats.front() << std::endl;
