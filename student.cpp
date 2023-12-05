@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
         std::cout << "Student ID: ";
         std::cin >> studentID ;
         
-        query = dept_query + ";" + studentID;
+        query = "student;" + dept_query + ";" + studentID;
         
         if (send(sockfd, query.c_str(), query.length(), 0) == -1){
             perror("send");
