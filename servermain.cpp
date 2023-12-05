@@ -167,11 +167,11 @@ std::string handleQueryB(int backendServer, int backendServerInd, sockaddr *ps[]
 
 int main(int argc, char *argv[])
 {
-    int numbytes;
+    // int numbytes;
     int sockfds[5] = {0};
     const char* ports[5] = {PORTA, PORTB, PORTC, UDP_MAINPORT, TCP_MAINPORT};
 
-    char buf[MAXDATASIZE];
+    // char buf[MAXDATASIZE];
     sockaddr* ps_addr[4] = {0, 0, 0, 0};
     socklen_t ps_addrlen[4] =  {0, 0, 0, 0};
     struct addrinfo hints, *servinfo, *p;
