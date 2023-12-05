@@ -1,11 +1,14 @@
-SRCS := servermain.cpp serverA.cpp serverB.cpp serverC.cpp student.cpp
+SRCS := servermain.cpp serverA.cpp serverB.cpp serverC.cpp student.cpp admin.cpp
 OBJS := $(SRCS:.cpp=.o)
 
 # Compiler and compilation flags
 CC := g++
 CFLAGS := -g -Wall
 
-all: servermain serverA serverB serverC student #admin 
+all: servermain serverA serverB serverC student admin 
+
+admin: admin.o 
+	$(CC) $(CFLAGS) -o $@ $^
 
 student: student.o
 	$(CC) $(CFLAGS) -o $@ $^
@@ -26,4 +29,4 @@ serverC: serverC.o
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	$(RM) servermain serverA serverB serverC student $(OBJS)
+	$(RM) servermain serverA serverB serverC student admin $(OBJS)

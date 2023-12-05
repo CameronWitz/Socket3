@@ -122,17 +122,21 @@ int main(int argc, char *argv[])
         std::string dept_query, studentID, query;
         std::cout << "Department Name: ";
         std::cin >> dept_query; // read in the query
-        std::cout << "Student ID: ";
-        std::cin >> studentID ;
-        
-        query = "student;" + dept_query + ";" + studentID;
+        std::cout << "Student ID (\"Enter\" to skip): ";
+        if(!(std::cin >> studentID)){
+            query = "admin;" + dept_query;
+            studentID = "";
+        } 
+       else{
+            query = "admin;" + dept_query + ";" + studentID;
+        }
         
         if (send(sockfd, query.c_str(), query.length(), 0) == -1){
             perror("send");
             exit(1);
         }
 
-        std::cout << "Client has sent Department " << dept_query << " and " << studentID <<  " to Main Server using TCP over port" << myPort << std::endl;
+        std::cout << "Admin has sent Department " << dept_query << " and " << studentID <<  " to Main Server using TCP over port" << myPort << std::endl;
                 
         if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
             perror("recv");
@@ -157,8 +161,22 @@ int main(int argc, char *argv[])
         }
         else{
             std::deque<std::string> stats = split(response, ";");
-            std::cout << "The academic record for Student " << studentID << " in " << dept_query << "is: " << std::endl;
-            std::cout << "Student GPA: " << stats.front() << std::endl << "Percentage Rank: " << stats.back() << std::endl;
+            if(studentID != ""){
+                std::cout << "The academic record for Student " << studentID << " in " << dept_query << "is: " << std::endl;
+                std::cout << "Student GPA: " << stats.front() << std::endl << "Percentage Rank: " << stats.back() << std::endl;
+            }
+            else{
+                std::cout << "The academic statistics for " << dept_query << "are: " << std::endl;
+                std::cout << "Department GPA Mean: " << stats.front() << std::endl;
+                stats.pop_front();
+                std::cout << "Department GPA Variance: " << stats.front() << std::endl;
+                stats.pop_front();
+                std::cout << "Department GPA Max: " << stats.front() << std::endl;
+                stats.pop_front();
+                std::cout << "Department GPA Min: " << stats.front() << std::endl;
+                stats.pop_front();
+            }
+        
         }
 
         std::cout << "-----Start a new request-----" << std::endl;
